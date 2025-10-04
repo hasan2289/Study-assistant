@@ -1,1630 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام متابعة الطلاب</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <style>
-        * {
-            font-family: 'Tajawal', sans-serif;
-        }
-        
-        .theme-purple {
-            --primary-color: #8B5CF6;
-            --secondary-color: #7C3AED;
-        }
-        
-        .theme-green {
-            --primary-color: #10B981;
-            --secondary-color: #059669;
-        }
-        
-        .theme-blue {
-            --primary-color: #3B82F6;
-            --secondary-color: #2563EB;
-        }
-        
-        .theme-orange {
-            --primary-color: #F59E0B;
-            --secondary-color: #D97706;
-        }
-        
-        .dark-mode {
-            background-color: #1f2937 !important;
-            color: #f9fafb !important;
-        }
-        
-        .dark-mode .bg-white {
-            background-color: #374151 !important;
-            color: #f9fafb !important;
-        }
-        
-        .dark-mode .text-gray-800 {
-            color: #f9fafb !important;
-        }
-        
-        .dark-mode .text-gray-600 {
-            color: #d1d5db !important;
-        }
-        
-        .dark-mode .border-gray-200 {
-            border-color: #4b5563 !important;
-        }
-        
-        .dark-mode .bg-gray-50 {
-            background-color: #374151 !important;
-        }
-        
-        .student-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .counter-btn {
-            transition: all 0.2s ease;
-        }
-        
-        .counter-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        .active-tab {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
-            color: white !important;
-        }
-        
-        .performance-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .performance-excellent { background: linear-gradient(135deg, #10B981, #059669); color: white; }
-        .performance-good { background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; }
-        .performance-average { background: linear-gradient(135deg, #F59E0B, #D97706); color: white; }
-        .performance-weak { background: linear-gradient(135deg, #EF4444, #DC2626); color: white; }
-    </style>
-</head>
-<body class="theme-purple bg-gray-50 min-h-screen" dir="rtl">
-    
-    <!-- شاشة تسجيل الدخول -->
-    <div id="loginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-600 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                    <i class="fas fa-graduation-cap text-3xl text-white"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-800">نظام متابعة الطلاب</h1>
-                <p class="text-gray-600 mt-2">سجل الدخول لبدء الاستخدام</p>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم المستخدم</label>
-                    <input type="text" id="username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="أدخل اسم المستخدم">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">كلمة المرور</label>
-                    <input type="password" id="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="أدخل كلمة المرور">
-                </div>
-                
-                <button onclick="login()" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 rounded-lg font-semibold transition-all duration-300">
-                    <i class="fas fa-sign-in-alt ml-2"></i>
-                    تسجيل الدخول
-                </button>
-                
-                <div class="text-center">
-                    <p class="text-gray-600 text-sm">ليس لديك حساب؟</p>
-                    <button onclick="showRegister()" class="text-blue-500 hover:text-blue-700 font-semibold text-sm mt-1">
-                        إنشاء حساب جديد
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- شاشة التسجيل -->
-    <div id="registerScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 to-blue-500 p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center">
-                    <i class="fas fa-user-plus text-3xl text-white"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-800">إنشاء حساب جديد</h1>
-                <p class="text-gray-600 mt-2">انشئ حسابك لبدء الاستخدام</p>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم المستخدم</label>
-                    <input type="text" id="newUsername" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="اختر اسم مستخدم">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">كلمة المرور</label>
-                    <input type="password" id="newPassword" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="اختر كلمة مرور">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">تأكيد كلمة المرور</label>
-                    <input type="password" id="confirmPassword" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="أعد إدخال كلمة المرور">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم المعلم</label>
-                    <input type="text" id="teacherName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="أدخل اسمك الكامل">
-                </div>
-                
-                <button onclick="register()" class="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white py-3 rounded-lg font-semibold transition-all duration-300">
-                    <i class="fas fa-user-plus ml-2"></i>
-                    إنشاء الحساب
-                </button>
-                
-                <div class="text-center">
-                    <button onclick="showLogin()" class="text-blue-500 hover:text-blue-700 font-semibold text-sm">
-                        ← العودة لتسجيل الدخول
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- التطبيق الرئيسي -->
-    <div id="app" class="hidden">
-        <!-- الهيدر -->
-        <header class="bg-gradient-to-l from-[var(--primary-color)] to-[var(--secondary-color)] text-white shadow-lg">
-            <div class="container mx-auto px-4 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4 space-x-reverse">
-                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-graduation-cap text-xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-xl font-bold">نظام متابعة أداء الطلاب</h1>
-                            <p class="text-white/80 text-sm">مرحباً، <span id="teacherNameHeader"></span></p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3 space-x-reverse">
-                        <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition">
-                            <i class="fas fa-moon text-yellow-300"></i>
-                        </button>
-                        <div class="text-sm bg-white/20 px-3 py-1 rounded-lg">
-                            <i class="fas fa-calendar-alt ml-1"></i>
-                            <span id="currentDate"></span>
-                        </div>
-                        <button onclick="logout()" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-sm transition">
-                            <i class="fas fa-sign-out-alt ml-1"></i>
-                            خروج
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- شريط التبويبات -->
-        <div class="bg-white shadow-lg mx-4 mt-4 rounded-xl">
-            <div class="flex overflow-x-auto">
-                <button onclick="showTab('groups')" class="tab-btn active-tab flex items-center space-x-2 space-x-reverse px-4 py-3 text-sm font-semibold whitespace-nowrap">
-                    <i class="fas fa-users"></i>
-                    <span>المجموعات</span>
-                </button>
-                <button onclick="showTab('tracking')" class="tab-btn flex items-center space-x-2 space-x-reverse px-4 py-3 text-sm font-semibold whitespace-nowrap text-gray-600 hover:text-[var(--primary-color)]">
-                    <i class="fas fa-tasks"></i>
-                    <span>المتابعة</span>
-                </button>
-                <button onclick="showTab('statistics')" class="tab-btn flex items-center space-x-2 space-x-reverse px-4 py-3 text-sm font-semibold whitespace-nowrap text-gray-600 hover:text-[var(--primary-color)]">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>الإحصائيات</span>
-                </button>
-                <button onclick="showTab('hall')" class="tab-btn flex items-center space-x-2 space-x-reverse px-4 py-3 text-sm font-semibold whitespace-nowrap text-gray-600 hover:text-[var(--primary-color)]">
-                    <i class="fas fa-trophy"></i>
-                    <span>قاعة الشرف</span>
-                </button>
-                <button onclick="showTab('settings')" class="tab-btn flex items-center space-x-2 space-x-reverse px-4 py-3 text-sm font-semibold whitespace-nowrap text-gray-600 hover:text-[var(--primary-color)]">
-                    <i class="fas fa-cogs"></i>
-                    <span>الإعدادات</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- محتوى التبويبات -->
-        <main class="container mx-auto px-4 py-6">
-            
-            <!-- تبويب المجموعات -->
-            <div id="groups-tab" class="tab-content">
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">
-                            <i class="fas fa-users ml-2 text-[var(--primary-color)]"></i>
-                            إدارة المجموعات والطلاب
-                        </h2>
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="showAddGroupModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 space-x-reverse text-sm">
-                                <i class="fas fa-layer-group"></i>
-                                <span>إضافة مجموعة</span>
-                            </button>
-                            <button onclick="showAddStudentModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 space-x-reverse text-sm">
-                                <i class="fas fa-user-plus"></i>
-                                <span>إضافة طالب</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- قائمة المجموعات -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="groupsList">
-                        <!-- سيتم ملء المجموعات هنا -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- تبويب المتابعة -->
-            <div id="tracking-tab" class="tab-content hidden">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">
-                            <i class="fas fa-tasks ml-2 text-green-500"></i>
-                            المتابعة اليومية
-                        </h2>
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="exportToExcel()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 space-x-reverse text-sm">
-                                <i class="fas fa-file-excel"></i>
-                                <span>Excel</span>
-                            </button>
-                            <button onclick="exportToPDF()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 space-x-reverse text-sm">
-                                <i class="fas fa-file-pdf"></i>
-                                <span>PDF</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- فلترة المجموعات -->
-                    <div class="bg-gray-50 p-4 rounded-lg mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">اختر المجموعة للمتابعة:</label>
-                        <select id="trackingGroupFilter" onchange="renderTrackingTable()" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
-                            <option value="all">جميع المجموعات</option>
-                        </select>
-                    </div>
-
-                    <!-- جدول المتابعة -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full min-w-4xl">
-                            <thead>
-                                <tr class="bg-gray-50 border-b">
-                                    <th class="p-3 text-right font-semibold text-gray-700 text-sm">الطالب</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">الواجبات</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">المشاركة</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">النشاط</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">النقاط</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">التقييم</th>
-                                </tr>
-                            </thead>
-                            <tbody id="trackingTable">
-                                <!-- سيتم ملء الجدول هنا -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- تبويب الإحصائيات -->
-            <div id="statistics-tab" class="tab-content hidden">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6">
-                        <i class="fas fa-chart-bar ml-2 text-blue-500"></i>
-                        الإحصائيات والتقارير
-                    </h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-xl shadow-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-blue-100 text-sm">إجمالي الطلاب</p>
-                                    <p class="text-2xl font-bold mt-1" id="totalStudents">0</p>
-                                </div>
-                                <i class="fas fa-users text-xl text-blue-200"></i>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-xl shadow-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-green-100 text-sm">إجمالي المجموعات</p>
-                                    <p class="text-2xl font-bold mt-1" id="totalGroups">0</p>
-                                </div>
-                                <i class="fas fa-layer-group text-xl text-green-200"></i>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-xl shadow-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-purple-100 text-sm">أعلى نقاط</p>
-                                    <p class="text-2xl font-bold mt-1" id="highestPoints">0</p>
-                                </div>
-                                <i class="fas fa-star text-xl text-purple-200"></i>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-xl shadow-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-orange-100 text-sm">متوسط النقاط</p>
-                                    <p class="text-2xl font-bold mt-1" id="averagePoints">0</p>
-                                </div>
-                                <i class="fas fa-chart-line text-xl text-orange-200"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-50 rounded-xl p-6 text-center">
-                        <i class="fas fa-chart-pie text-4xl text-gray-400 mb-4"></i>
-                        <p class="text-gray-500">سيتم عرض المخططات الإحصائية هنا</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- تبويب قاعة الشرف -->
-            <div id="hall-tab" class="tab-content hidden">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6">
-                        <i class="fas fa-trophy ml-2 text-yellow-500"></i>
-                        قاعة الشرف
-                    </h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <!-- المركز الأول -->
-                        <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white rounded-xl p-6 text-center shadow-lg">
-                            <div class="w-16 h-16 mx-auto mb-3 bg-white/20 rounded-full flex items-center justify-center text-2xl">
-                                🥇
-                            </div>
-                            <h3 class="text-lg font-bold mb-1" id="firstPlace">-</h3>
-                            <p class="text-yellow-100 text-sm" id="firstPoints">0 نقطة</p>
-                            <div class="mt-2 text-yellow-200 text-xs" id="firstGroup">-</div>
-                        </div>
-
-                        <!-- المركز الثاني -->
-                        <div class="bg-gradient-to-br from-gray-400 to-gray-600 text-white rounded-xl p-6 text-center shadow-lg">
-                            <div class="w-16 h-16 mx-auto mb-3 bg-white/20 rounded-full flex items-center justify-center text-2xl">
-                                🥈
-                            </div>
-                            <h3 class="text-lg font-bold mb-1" id="secondPlace">-</h3>
-                            <p class="text-gray-100 text-sm" id="secondPoints">0 نقطة</p>
-                            <div class="mt-2 text-gray-200 text-xs" id="secondGroup">-</div>
-                        </div>
-
-                        <!-- المركز الثالث -->
-                        <div class="bg-gradient-to-br from-orange-400 to-orange-700 text-white rounded-xl p-6 text-center shadow-lg">
-                            <div class="w-16 h-16 mx-auto mb-3 bg-white/20 rounded-full flex items-center justify-center text-2xl">
-                                🥉
-                            </div>
-                            <h3 class="text-lg font-bold mb-1" id="thirdPlace">-</h3>
-                            <p class="text-orange-100 text-sm" id="thirdPoints">0 نقطة</p>
-                            <div class="mt-2 text-orange-200 text-xs" id="thirdGroup">-</div>
-                        </div>
-                    </div>
-
-                    <!-- جدول التصنيف -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="bg-gray-50 border-b">
-                                    <th class="p-3 text-right font-semibold text-gray-700 text-sm">الترتيب</th>
-                                    <th class="p-3 text-right font-semibold text-gray-700 text-sm">الطالب</th>
-                                    <th class="p-3 text-right font-semibold text-gray-700 text-sm">المجموعة</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">النقاط</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">✓ الصح</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">✗ الخطأ</th>
-                                    <th class="p-3 text-center font-semibold text-gray-700 text-sm">الدقة</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rankingTable">
-                                <!-- سيتم ملء الجدول هنا -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- تبويب الإعدادات -->
-            <div id="settings-tab" class="tab-content hidden">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6">
-                        <i class="fas fa-cogs ml-2 text-gray-500"></i>
-                        الإعدادات
-                    </h2>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- إعدادات المظهر -->
-                        <div class="bg-gray-50 p-4 rounded-xl border">
-                            <h3 class="text-lg font-semibold mb-4 text-gray-800">
-                                <i class="fas fa-palette ml-2"></i>
-                                إعدادات المظهر
-                            </h3>
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">اختيار الثيم</label>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button onclick="changeTheme('purple')" class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg text-xs font-semibold">
-                                            البنفسجي
-                                        </button>
-                                        <button onclick="changeTheme('green')" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg text-xs font-semibold">
-                                            الأخضر
-                                        </button>
-                                        <button onclick="changeTheme('blue')" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg text-xs font-semibold">
-                                            الأزرق
-                                        </button>
-                                        <button onclick="changeTheme('orange')" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg text-xs font-semibold">
-                                            البرتقالي
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between p-2 bg-white rounded-lg">
-                                    <span class="text-gray-700 font-medium text-sm">الوضع الليلي</span>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="darkModeToggle" class="sr-only peer" onchange="toggleDarkMode()">
-                                        <div class="w-10 h-5 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- إعدادات الأوزان -->
-                        <div class="bg-gray-50 p-4 rounded-xl border">
-                            <h3 class="text-lg font-semibold mb-4 text-gray-800">
-                                <i class="fas fa-weight-scale ml-2"></i>
-                                أوزان التقييم
-                            </h3>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">نقاط الواجبات (لكل ✓)</label>
-                                    <input type="number" id="homeworkWeight" value="1" min="1" max="10" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">نقاط المشاركة (لكل ✓)</label>
-                                    <input type="number" id="participationWeight" value="1" min="1" max="10" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">نقاط النشاط (لكل ✓)</label>
-                                    <input type="number" id="activityWeight" value="1" min="1" max="10" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
-                                </div>
-                                <button onclick="saveWeights()" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-semibold text-sm mt-2">
-                                    <i class="fas fa-save ml-1"></i>
-                                    حفظ الأوزان
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- أدوات البيانات -->
-                        <div class="bg-gray-50 p-4 rounded-xl border lg:col-span-2">
-                            <h3 class="text-lg font-semibold mb-4 text-gray-800">
-                                <i class="fas fa-database ml-2"></i>
-                                أدوات البيانات
-                            </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                <button onclick="importFromExcel()" class="bg-white hover:bg-gray-50 text-gray-800 py-3 rounded-lg font-semibold border border-gray-200 shadow-sm text-sm flex items-center justify-center space-x-1 space-x-reverse">
-                                    <i class="fas fa-file-import text-green-500"></i>
-                                    <span>استيراد</span>
-                                </button>
-                                
-                                <button onclick="exportToExcel()" class="bg-white hover:bg-gray-50 text-gray-800 py-3 rounded-lg font-semibold border border-gray-200 shadow-sm text-sm flex items-center justify-center space-x-1 space-x-reverse">
-                                    <i class="fas fa-file-excel text-green-500"></i>
-                                    <span>Excel</span>
-                                </button>
-                                
-                                <button onclick="exportToPDF()" class="bg-white hover:bg-gray-50 text-gray-800 py-3 rounded-lg font-semibold border border-gray-200 shadow-sm text-sm flex items-center justify-center space-x-1 space-x-reverse">
-                                    <i class="fas fa-file-pdf text-red-500"></i>
-                                    <span>PDF</span>
-                                </button>
-                                
-                                <button onclick="backupData()" class="bg-white hover:bg-gray-50 text-gray-800 py-3 rounded-lg font-semibold border border-gray-200 shadow-sm text-sm flex items-center justify-center space-x-1 space-x-reverse">
-                                    <i class="fas fa-download text-yellow-500"></i>
-                                    <span>نسخ احتياطي</span>
-                                </button>
-                            </div>
-                            
-                            <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <button onclick="resetData()" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-semibold text-sm flex items-center justify-center space-x-1 space-x-reverse">
-                                    <i class="fas fa-trash ml-1"></i>
-                                    <span>مسح جميع البيانات</span>
-                                </button>
-                                <p class="text-red-600 text-xs mt-1 text-center">⚠️ سيتم حذف جميع البيانات ولا يمكن التراجع</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- الفوتر -->
-        <footer class="bg-gray-800 text-white py-3 mt-8">
-            <div class="container mx-auto px-4 text-center">
-                <p class="text-gray-400 text-xs flex items-center justify-center space-x-1 space-x-reverse">
-                    <i class="fas fa-code text-blue-400"></i>
-                    <span>تم التطوير بواسطة حسن المحمد</span>
-                </p>
-            </div>
-        </footer>
-    </div>
-
-    <!-- المودالات -->
-    <!-- مودال إضافة مجموعة -->
-    <div id="addGroupModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-xl p-6 w-96 mx-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-gray-800 mb-4 text-center">إضافة مجموعة جديدة</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">اسم المجموعة</label>
-                    <input type="text" id="groupName" class="w-full p-3 border border-gray-300 rounded-lg text-sm" placeholder="أدخل اسم المجموعة">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">لون المجموعة</label>
-                    <div class="flex justify-center space-x-2 space-x-reverse">
-                        <button onclick="setGroupColor('bg-gradient-to-r from-blue-500 to-blue-600')" class="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 border border-gray-300"></button>
-                        <button onclick="setGroupColor('bg-gradient-to-r from-green-500 to-green-600')" class="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-green-600 border border-gray-300"></button>
-                        <button onclick="setGroupColor('bg-gradient-to-r from-purple-500 to-purple-600')" class="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 border border-gray-300"></button>
-                        <button onclick="setGroupColor('bg-gradient-to-r from-red-500 to-red-600')" class="w-8 h-8 rounded-lg bg-gradient-to-r from-red-500 to-red-600 border border-gray-300"></button>
-                    </div>
-                </div>
-            </div>
-            <div class="flex space-x-2 space-x-reverse mt-6">
-                <button onclick="hideAddGroupModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg font-semibold text-sm">إلغاء</button>
-                <button onclick="addGroup()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-semibold text-sm">إضافة</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- مودال إضافة طالب -->
-    <div id="addStudentModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-xl p-6 w-96 mx-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-gray-800 mb-4 text-center">إضافة طالب جديد</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">اسم الطالب</label>
-                    <input type="text" id="studentName" class="w-full p-3 border border-gray-300 rounded-lg text-sm" placeholder="أدخل اسم الطالب">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">المجموعة</label>
-                    <select id="studentGroup" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
-                        <!-- سيتم ملء المجموعات هنا -->
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">لون الطالب</label>
-                    <div class="flex justify-center space-x-2 space-x-reverse">
-                        <button onclick="setStudentColor('bg-gradient-to-r from-blue-400 to-blue-500')" class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 border border-gray-300"></button>
-                        <button onclick="setStudentColor('bg-gradient-to-r from-green-400 to-green-500')" class="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-green-500 border border-gray-300"></button>
-                        <button onclick="setStudentColor('bg-gradient-to-r from-purple-400 to-purple-500')" class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-purple-500 border border-gray-300"></button>
-                        <button onclick="setStudentColor('bg-gradient-to-r from-pink-400 to-pink-500')" class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-400 to-pink-500 border border-gray-300"></button>
-                    </div>
-                </div>
-            </div>
-            <div class="flex space-x-2 space-x-reverse mt-6">
-                <button onclick="hideAddStudentModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg font-semibold text-sm">إلغاء</button>
-                <button onclick="addStudent()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-semibold text-sm">إضافة</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- السكريبت الرئيسي -->
-    <script>
-        // بيانات التطبيق
-        let appData = {
-            users: {},
-            currentUser: null,
-            settings: {
-                theme: 'purple',
-                darkMode: false
-            }
-        };
-
-        // بيانات المستخدم الحالي
-        let currentUserData = {
-            groups: [],
-            students: [],
-            counters: {},
-            userSettings: {
-                homeworkWeight: 1,
-                participationWeight: 1,
-                activityWeight: 1
-            }
-        };
-
-        // المتغيرات العامة
-        let currentGroupColor = 'bg-gradient-to-r from-blue-500 to-blue-600';
-        let currentStudentColor = 'bg-gradient-to-r from-blue-400 to-blue-500';
-
-        // تهيئة التطبيق
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-        });
-
-        function initializeApp() {
-            loadData();
-            applyTheme();
-            updateDate();
-            checkAuthentication();
-        }
-
-        function checkAuthentication() {
-            const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                appData.currentUser = currentUser;
-                loadUserData();
-                showApp();
-            } else {
-                showLoginScreen();
-            }
-        }
-
-        // نظام المستخدمين
-        function showLoginScreen() {
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('registerScreen').classList.add('hidden');
-            document.getElementById('app').classList.add('hidden');
-        }
-
-        function showRegister() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('registerScreen').classList.remove('hidden');
-        }
-
-        function showLogin() {
-            document.getElementById('registerScreen').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-        }
-
-        function showApp() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('registerScreen').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
-            updateUserInterface();
-            renderGroups();
-            renderTrackingTable();
-            updateStatistics();
-            updateHallOfFame();
-        }
-
-        function login() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            if (!username || !password) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'يرجى إدخال اسم المستخدم وكلمة المرور',
-                    confirmButtonText: 'حسناً'
-                });
-                return;
-            }
-
-            if (appData.users[username] && appData.users[username].password === password) {
-                appData.currentUser = username;
-                localStorage.setItem('currentUser', username);
-                loadUserData();
-                showApp();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'مرحباً بعودتك!',
-                    text: `تم تسجيل الدخول بنجاح`,
-                    confirmButtonText: 'حسناً'
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'اسم المستخدم أو كلمة المرور غير صحيحة',
-                    confirmButtonText: 'حسناً'
-                });
-            }
-        }
-
-        function register() {
-            const username = document.getElementById('newUsername').value.trim();
-            const password = document.getElementById('newPassword').value.trim();
-            const confirmPassword = document.getElementById('confirmPassword').value.trim();
-            const teacherName = document.getElementById('teacherName').value.trim();
-            
-            if (!username || !password || !confirmPassword || !teacherName) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'يرجى ملء جميع الحقول',
-                    confirmButtonText: 'حسناً'
-                });
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'كلمات المرور غير متطابقة',
-                    confirmButtonText: 'حسناً'
-                });
-                return;
-            }
-
-            if (appData.users[username]) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'اسم المستخدم موجود مسبقاً',
-                    confirmButtonText: 'حسناً'
-                });
-                return;
-            }
-
-            // إنشاء مستخدم جديد
-            appData.users[username] = {
-                password: password,
-                teacherName: teacherName,
-                createdAt: new Date().toISOString(),
-                data: {
-                    groups: [],
-                    students: [],
-                    counters: {},
-                    userSettings: {
-                        homeworkWeight: 1,
-                        participationWeight: 1,
-                        activityWeight: 1
-                    }
-                }
-            };
-
-            appData.currentUser = username;
-            localStorage.setItem('currentUser', username);
-            loadUserData();
-            showApp();
-            
-            Swal.fire({
-                icon: 'success',
-                title: 'تهانينا!',
-                text: `تم إنشاء حسابك بنجاح، ${teacherName}`,
-                confirmButtonText: 'بدء الاستخدام'
-            });
-        }
-
-        function logout() {
-            Swal.fire({
-                title: 'تسجيل الخروج',
-                text: 'هل تريد تسجيل الخروج؟',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'نعم',
-                cancelButtonText: 'لا'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    localStorage.removeItem('currentUser');
-                    appData.currentUser = null;
-                    showLoginScreen();
-                }
-            });
-        }
-
-        function updateUserInterface() {
-            const user = appData.users[appData.currentUser];
-            if (user) {
-                document.getElementById('teacherNameHeader').textContent = user.teacherName;
-            }
-        }
-
-        // نظام الحفظ التلقائي
-        function autoSave() {
-            if (appData.currentUser) {
-                appData.users[appData.currentUser].data = currentUserData;
-            }
-            saveData();
-        }
-
-        function loadUserData() {
-            if (appData.currentUser && appData.users[appData.currentUser].data) {
-                currentUserData = appData.users[appData.currentUser].data;
-            }
-        }
-
-        // تحميل البيانات
-        function loadData() {
-            const saved = localStorage.getItem('studentTrackerApp');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                appData.users = parsed.users || {};
-                appData.settings = parsed.settings || appData.settings;
-            }
-            
-            // إنشاء مستخدم افتراضي للتجربة
-            if (Object.keys(appData.users).length === 0) {
-                appData.users['admin'] = {
-                    password: '123456',
-                    teacherName: 'المعلم الأول',
-                    createdAt: new Date().toISOString(),
-                    data: {
-                        groups: [],
-                        students: [],
-                        counters: {},
-                        userSettings: {
-                            homeworkWeight: 1,
-                            participationWeight: 1,
-                            activityWeight: 1
-                        }
-                    }
-                };
-            }
-        }
-
-        // حفظ البيانات
-        function saveData() {
-            localStorage.setItem('studentTrackerApp', JSON.stringify(appData));
-        }
-
-        // تحديث التاريخ
-        function updateDate() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            };
-            document.getElementById('currentDate').textContent = 
-                now.toLocaleDateString('ar-SA', options);
-        }
-
-        // تبديل التبويبات
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.add('hidden');
-            });
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active-tab');
-                btn.classList.add('text-gray-600', 'hover:text-[var(--primary-color)]');
-            });
-            
-            document.getElementById(tabName + '-tab').classList.remove('hidden');
-            
-            const activeBtn = document.querySelector(`[onclick="showTab('${tabName}')"]`);
-            activeBtn.classList.add('active-tab');
-            activeBtn.classList.remove('text-gray-600', 'hover:text-[var(--primary-color)]');
-        }
-
-        // إدارة المجموعات
-        function showAddGroupModal() {
-            document.getElementById('addGroupModal').classList.remove('hidden');
-            document.getElementById('groupName').value = '';
-            currentGroupColor = 'bg-gradient-to-r from-blue-500 to-blue-600';
-        }
-
-        function hideAddGroupModal() {
-            document.getElementById('addGroupModal').classList.add('hidden');
-        }
-
-        function setGroupColor(color) {
-            currentGroupColor = color;
-        }
-
-        function addGroup() {
-            const name = document.getElementById('groupName').value.trim();
-            if (!name) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'يرجى إدخال اسم المجموعة',
-                    confirmButtonText: 'حسناً'
-                });
-                return;
-            }
-
-            const group = {
-                id: Date.now().toString(),
-                name: name,
-                color: currentGroupColor,
-                createdAt: new Date().toISOString()
-            };
-
-            currentUserData.groups.push(group);
-            autoSave();
-            renderGroups();
-            hideAddGroupModal();
-            Swal.fire({
-                icon: 'success',
-                title: 'نجاح',
-                text: 'تم إضافة المجموعة بنجاح',
-                confirmButtonText: 'حسناً'
-            });
-        }
-
-        function renderGroups() {
-            const container = document.getElementById('groupsList');
-            const trackingFilter = document.getElementById('trackingGroupFilter');
-            
-            // تحديث فلتر المتابعة
-            trackingFilter.innerHTML = '<option value="all">جميع المجموعات</option>' +
-                currentUserData.groups.map(group => `<option value="${group.id}">${group.name}</option>`).join('');
-
-            container.innerHTML = '';
-
-            if (currentUserData.groups.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-3 text-center py-8">
-                        <i class="fas fa-layer-group text-4xl text-gray-300 mb-3"></i>
-                        <p class="text-gray-500">لا توجد مجموعات</p>
-                        <button onclick="showAddGroupModal()" class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
-                            إضافة مجموعة أولى
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            currentUserData.groups.forEach(group => {
-                const groupStudents = currentUserData.students.filter(s => s.groupId === group.id);
-                const card = document.createElement('div');
-                card.className = 'bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300';
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="${group.color} text-white px-3 py-1 rounded-lg text-sm font-semibold">
-                            ${group.name}
-                        </div>
-                        <button onclick="deleteGroup('${group.id}')" class="text-red-500 hover:text-red-700 text-sm">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="text-center mb-3">
-                        <span class="text-2xl font-bold text-gray-800">${groupStudents.length}</span>
-                        <p class="text-gray-600 text-sm">طالب</p>
-                    </div>
-                    <div class="space-y-2 max-h-32 overflow-y-auto">
-                        ${groupStudents.map(student => `
-                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                <div class="flex items-center space-x-2 space-x-reverse">
-                                    <div class="${student.color} student-avatar text-white text-sm">
-                                        ${student.name.charAt(0)}
-                                    </div>
-                                    <span class="font-medium text-sm">${student.name}</span>
-                                </div>
-                                <span class="${getPerformanceBadge(student.id)} text-xs">${getPerformanceLevel(student.id)}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-
-            updateStatistics();
-        }
-
-        function deleteGroup(groupId) {
-            Swal.fire({
-                title: 'هل أنت متأكد؟',
-                text: 'سيتم حذف جميع طلاب هذه المجموعة أيضاً!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'نعم، احذف',
-                cancelButtonText: 'إلغاء',
-                confirmButtonColor: '#d33'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    currentUserData.students = currentUserData.students.filter(s => s.groupId !== groupId);
-                    currentUserData.groups = currentUserData.groups.filter(g => g.id !== groupId);
-                    autoSave();
-                    renderGroups();
-                    renderTrackingTable();
-                    Swal.fire('تم الحذف', 'تم حذف المجموعة وطلابها', 'success');
-                }
-            });
-        }
-
-        // إدارة الطلاب
-        function showAddStudentModal() {
-            document.getElementById('addStudentModal').classList.remove('hidden');
-            document.getElementById('studentName').value = '';
-            currentStudentColor = 'bg-gradient-to-r from-blue-400 to-blue-500';
-            
-            const groupSelect = document.getElementById('studentGroup');
-            groupSelect.innerHTML = currentUserData.groups.map(group => 
-                `<option value="${group.id}">${group.name}</option>`
-            ).join('');
-            
-            if (currentUserData.groups.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'تحذير',
-                    text: 'يجب إنشاء مجموعة أولاً',
-                    confirmButtonText: 'حسناً'
-                });
-                hideAddStudentModal();
-                showAddGroupModal();
-                return;
-            }
-        }
-
-        function hideAddStudentModal() {
-            document.getElementById('addStudentModal').classList.add('hidden');
-        }
-
-        function setStudentColor(color) {
-            currentStudentColor = color;
-        }
-
-        function addStudent() {
-            const name = document.getElementById('studentName').value.trim();
-            const groupId = document.getElementById('studentGroup').value;
-            
-            if (!name) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'يرجى إدخال اسم الطالب',
-                    confirmButtonText: 'حسناً'
-                });
-                return;
-            }
-
-            const student = {
-                id: Date.now().toString(),
-                name: name,
-                groupId: groupId,
-                color: currentStudentColor,
-                createdAt: new Date().toISOString()
-            };
-
-            currentUserData.students.push(student);
-            
-            currentUserData.counters[student.id] = {
-                homework: { yes: 0, no: 0 },
-                participation: { yes: 0, no: 0 },
-                activity: { yes: 0, no: 0 }
-            };
-
-            autoSave();
-            renderGroups();
-            renderTrackingTable();
-            hideAddStudentModal();
-            Swal.fire({
-                icon: 'success',
-                title: 'نجاح',
-                text: 'تم إضافة الطالب بنجاح',
-                confirmButtonText: 'حسناً'
-            });
-        }
-
-        function deleteStudent(studentId) {
-            Swal.fire({
-                title: 'هل أنت متأكد؟',
-                text: 'لا يمكن التراجع عن هذه العملية!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'نعم، احذف',
-                cancelButtonText: 'إلغاء',
-                confirmButtonColor: '#d33'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    currentUserData.students = currentUserData.students.filter(s => s.id !== studentId);
-                    delete currentUserData.counters[studentId];
-                    autoSave();
-                    renderGroups();
-                    renderTrackingTable();
-                    updateStatistics();
-                    updateHallOfFame();
-                    Swal.fire('تم الحذف', 'تم حذف الطالب بنجاح', 'success');
-                }
-            });
-        }
-
-        // المتابعة اليومية
-        function renderTrackingTable() {
-            const table = document.getElementById('trackingTable');
-            const groupFilter = document.getElementById('trackingGroupFilter').value;
-            
-            let filteredStudents = currentUserData.students;
-
-            // تطبيق فلتر المجموعة
-            if (groupFilter !== 'all') {
-                filteredStudents = filteredStudents.filter(student => student.groupId === groupFilter);
-            }
-
-            table.innerHTML = '';
-
-            if (filteredStudents.length === 0) {
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="p-6 text-center text-gray-500">
-                            <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
-                            <p class="text-sm">لا يوجد طلاب للمتابعة</p>
-                            <button onclick="showAddStudentModal()" class="mt-2 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs">
-                                إضافة طالب جديد
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            filteredStudents.forEach(student => {
-                const group = currentUserData.groups.find(g => g.id === student.groupId);
-                const counters = currentUserData.counters[student.id] || {
-                    homework: { yes: 0, no: 0 },
-                    participation: { yes: 0, no: 0 },
-                    activity: { yes: 0, no: 0 }
-                };
-
-                const points = calculateStudentPoints(student.id);
-                const totalYes = counters.homework.yes + counters.participation.yes + counters.activity.yes;
-                const totalNo = counters.homework.no + counters.participation.no + counters.activity.no;
-                const accuracy = totalYes + totalNo > 0 ? Math.round((totalYes / (totalYes + totalNo)) * 100) : 0;
-
-                const row = document.createElement('tr');
-                row.className = 'border-b border-gray-200 hover:bg-gray-50';
-                row.setAttribute('data-student-id', student.id);
-                row.innerHTML = `
-                    <td class="p-3">
-                        <div class="flex items-center space-x-2 space-x-reverse">
-                            <div class="${student.color} student-avatar text-white text-sm">
-                                ${student.name.charAt(0)}
-                            </div>
-                            <div>
-                                <div class="font-semibold text-gray-800 text-sm">${student.name}</div>
-                                <div class="text-gray-500 text-xs">${group?.name || 'بدون مجموعة'}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="p-3 text-center">
-                        <div class="flex items-center justify-center space-x-1 space-x-reverse">
-                            <button onclick="incrementCounter('${student.id}', 'homework', 'yes')" 
-                                    class="counter-btn bg-green-500 hover:bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <span class="font-bold mx-1 min-w-6 text-center homework-yes">${counters.homework.yes}</span>
-                            <button onclick="incrementCounter('${student.id}', 'homework', 'no')" 
-                                    class="counter-btn bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <span class="font-bold text-red-600 mx-1 min-w-6 text-center homework-no">${counters.homework.no}</span>
-                        </div>
-                    </td>
-                    <td class="p-3 text-center">
-                        <div class="flex items-center justify-center space-x-1 space-x-reverse">
-                            <button onclick="incrementCounter('${student.id}', 'participation', 'yes')" 
-                                    class="counter-btn bg-green-500 hover:bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <span class="font-bold mx-1 min-w-6 text-center participation-yes">${counters.participation.yes}</span>
-                            <button onclick="incrementCounter('${student.id}', 'participation', 'no')" 
-                                    class="counter-btn bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <span class="font-bold text-red-600 mx-1 min-w-6 text-center participation-no">${counters.participation.no}</span>
-                        </div>
-                    </td>
-                    <td class="p-3 text-center">
-                        <div class="flex items-center justify-center space-x-1 space-x-reverse">
-                            <button onclick="incrementCounter('${student.id}', 'activity', 'yes')" 
-                                    class="counter-btn bg-green-500 hover:bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <span class="font-bold mx-1 min-w-6 text-center activity-yes">${counters.activity.yes}</span>
-                            <button onclick="incrementCounter('${student.id}', 'activity', 'no')" 
-                                    class="counter-btn bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <span class="font-bold text-red-600 mx-1 min-w-6 text-center activity-no">${counters.activity.no}</span>
-                        </div>
-                    </td>
-                    <td class="p-3 text-center">
-                        <span class="font-bold text-lg ${
-                            points >= 10 ? 'text-green-600' : points >= 5 ? 'text-yellow-600' : 'text-red-600'
-                        } student-points">
-                            ${points}
-                        </span>
-                    </td>
-                    <td class="p-3 text-center">
-                        <span class="${getPerformanceBadge(student.id)} text-xs student-performance">
-                            ${getPerformanceLevel(student.id)}
-                        </span>
-                        <div class="text-gray-500 text-xs mt-1">${accuracy}%</div>
-                    </td>
-                `;
-                table.appendChild(row);
-            });
-        }
-
-        function incrementCounter(studentId, type, action) {
-            if (!currentUserData.counters[studentId]) {
-                currentUserData.counters[studentId] = {
-                    homework: { yes: 0, no: 0 },
-                    participation: { yes: 0, no: 0 },
-                    activity: { yes: 0, no: 0 }
-                };
-            }
-
-            currentUserData.counters[studentId][type][action]++;
-            autoSave();
-            
-            // تحديث الصف مباشرة
-            updateStudentRow(studentId);
-            updateStatistics();
-            updateHallOfFame();
-        }
-
-        // تحديث صف الطالب فقط
-        function updateStudentRow(studentId) {
-            const student = currentUserData.students.find(s => s.id === studentId);
-            if (!student) return;
-
-            const counters = currentUserData.counters[studentId];
-            const points = calculateStudentPoints(studentId);
-            const totalYes = counters.homework.yes + counters.participation.yes + counters.activity.yes;
-            const totalNo = counters.homework.no + counters.participation.no + counters.activity.no;
-            const accuracy = totalYes + totalNo > 0 ? Math.round((totalYes / (totalYes + totalNo)) * 100) : 0;
-
-            // تحديث العناصر في الجدول
-            const row = document.querySelector(`[data-student-id="${studentId}"]`);
-            if (row) {
-                // تحديث العدادات
-                row.querySelector('.homework-yes').textContent = counters.homework.yes;
-                row.querySelector('.homework-no').textContent = counters.homework.no;
-                row.querySelector('.participation-yes').textContent = counters.participation.yes;
-                row.querySelector('.participation-no').textContent = counters.participation.no;
-                row.querySelector('.activity-yes').textContent = counters.activity.yes;
-                row.querySelector('.activity-no').textContent = counters.activity.no;
-
-                // تحديث النقاط
-                const pointsElement = row.querySelector('.student-points');
-                pointsElement.textContent = points;
-                pointsElement.className = `font-bold text-lg ${
-                    points >= 10 ? 'text-green-600' : points >= 5 ? 'text-yellow-600' : 'text-red-600'
-                } student-points`;
-
-                // تحديث التقييم
-                const performanceElement = row.querySelector('.student-performance');
-                performanceElement.className = `${getPerformanceBadge(studentId)} text-xs student-performance`;
-                performanceElement.textContent = getPerformanceLevel(studentId);
-            }
-        }
-
-        function calculateStudentPoints(studentId) {
-            const counters = currentUserData.counters[studentId];
-            if (!counters) return 0;
-
-            const homeworkPoints = counters.homework.yes * currentUserData.userSettings.homeworkWeight;
-            const participationPoints = counters.participation.yes * currentUserData.userSettings.participationWeight;
-            const activityPoints = counters.activity.yes * currentUserData.userSettings.activityWeight;
-
-            return homeworkPoints + participationPoints + activityPoints;
-        }
-
-        // نظام التقييم
-        function getPerformanceLevel(studentId) {
-            const points = calculateStudentPoints(studentId);
-            if (points >= 15) return 'ممتاز';
-            if (points >= 10) return 'جيد جداً';
-            if (points >= 5) return 'جيد';
-            return 'ضعيف';
-        }
-
-        function getPerformanceBadge(studentId) {
-            const points = calculateStudentPoints(studentId);
-            if (points >= 15) return 'performance-badge performance-excellent';
-            if (points >= 10) return 'performance-badge performance-good';
-            if (points >= 5) return 'performance-badge performance-average';
-            return 'performance-badge performance-weak';
-        }
-
-        // الإحصائيات
-        function updateStatistics() {
-            document.getElementById('totalStudents').textContent = currentUserData.students.length;
-            document.getElementById('totalGroups').textContent = currentUserData.groups.length;
-            
-            if (currentUserData.students.length > 0) {
-                const points = currentUserData.students.map(s => calculateStudentPoints(s.id));
-                const totalPoints = points.reduce((sum, point) => sum + point, 0);
-                const averagePoints = Math.round(totalPoints / currentUserData.students.length);
-                const highestPoints = Math.max(...points);
-                
-                document.getElementById('averagePoints').textContent = averagePoints;
-                document.getElementById('highestPoints').textContent = highestPoints;
-            } else {
-                document.getElementById('averagePoints').textContent = '0';
-                document.getElementById('highestPoints').textContent = '0';
-            }
-        }
-
-        // قاعة الشرف
-        function updateHallOfFame() {
-            const studentsWithPoints = currentUserData.students.map(student => {
-                const counters = currentUserData.counters[student.id] || {
-                    homework: { yes: 0, no: 0 },
-                    participation: { yes: 0, no: 0 },
-                    activity: { yes: 0, no: 0 }
-                };
-                
-                const totalYes = counters.homework.yes + counters.participation.yes + counters.activity.yes;
-                const totalNo = counters.homework.no + counters.participation.no + counters.activity.no;
-                const accuracy = totalYes + totalNo > 0 ? Math.round((totalYes / (totalYes + totalNo)) * 100) : 0;
-
-                return {
-                    ...student,
-                    points: calculateStudentPoints(student.id),
-                    group: currentUserData.groups.find(g => g.id === student.groupId)?.name || 'بدون مجموعة',
-                    totalYes: totalYes,
-                    totalNo: totalNo,
-                    accuracy: accuracy
-                };
-            });
-
-            studentsWithPoints.sort((a, b) => {
-                if (b.points !== a.points) return b.points - a.points;
-                return b.accuracy - a.accuracy;
-            });
-
-            // المراكز الأولى
-            if (studentsWithPoints.length > 0) {
-                document.getElementById('firstPlace').textContent = studentsWithPoints[0].name;
-                document.getElementById('firstPoints').textContent = `${studentsWithPoints[0].points} نقطة`;
-                document.getElementById('firstGroup').textContent = studentsWithPoints[0].group;
-            }
-            if (studentsWithPoints.length > 1) {
-                document.getElementById('secondPlace').textContent = studentsWithPoints[1].name;
-                document.getElementById('secondPoints').textContent = `${studentsWithPoints[1].points} نقطة`;
-                document.getElementById('secondGroup').textContent = studentsWithPoints[1].group;
-            }
-            if (studentsWithPoints.length > 2) {
-                document.getElementById('thirdPlace').textContent = studentsWithPoints[2].name;
-                document.getElementById('thirdPoints').textContent = `${studentsWithPoints[2].points} نقطة`;
-                document.getElementById('thirdGroup').textContent = studentsWithPoints[2].group;
-            }
-
-            // جدول التصنيف
-            const table = document.getElementById('rankingTable');
-            table.innerHTML = '';
-
-            studentsWithPoints.forEach((student, index) => {
-                const row = document.createElement('tr');
-                row.className = 'border-b border-gray-200 hover:bg-gray-50';
-                row.innerHTML = `
-                    <td class="p-3 text-center">
-                        <span class="font-bold ${
-                            index === 0 ? 'text-yellow-600' : 
-                            index === 1 ? 'text-gray-600' : 
-                            index === 2 ? 'text-orange-600' : 'text-gray-500'
-                        } text-sm">
-                            ${index + 1}
-                        </span>
-                    </td>
-                    <td class="p-3">
-                        <div class="flex items-center space-x-2 space-x-reverse">
-                            <div class="${student.color} student-avatar text-white text-sm">
-                                ${student.name.charAt(0)}
-                            </div>
-                            <span class="font-medium text-sm">${student.name}</span>
-                        </div>
-                    </td>
-                    <td class="p-3">
-                        <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">
-                            ${student.group}
-                        </span>
-                    </td>
-                    <td class="p-3 text-center font-bold text-sm">${student.points}</td>
-                    <td class="p-3 text-center text-green-600 font-bold text-sm">${student.totalYes}</td>
-                    <td class="p-3 text-center text-red-600 font-bold text-sm">${student.totalNo}</td>
-                    <td class="p-3 text-center font-bold ${
-                        student.accuracy >= 80 ? 'text-green-600' : 
-                        student.accuracy >= 60 ? 'text-yellow-600' : 'text-red-600'
-                    } text-sm">
-                        ${student.accuracy}%
-                    </td>
-                `;
-                table.appendChild(row);
-            });
-        }
-
-        // إعدادات المظهر
-        function changeTheme(theme) {
-            appData.settings.theme = theme;
-            autoSave();
-            applyTheme();
-        }
-
-        function applyTheme() {
-            document.body.className = `theme-${appData.settings.theme} ${appData.settings.darkMode ? 'dark-mode' : 'light-mode'} bg-gray-50 min-h-screen`;
-        }
-
-        function toggleDarkMode() {
-            appData.settings.darkMode = !appData.settings.darkMode;
-            document.getElementById('darkModeToggle').checked = appData.settings.darkMode;
-            autoSave();
-            applyTheme();
-        }
-
-        // الإعدادات
-        function saveWeights() {
-            currentUserData.userSettings.homeworkWeight = parseInt(document.getElementById('homeworkWeight').value) || 1;
-            currentUserData.userSettings.participationWeight = parseInt(document.getElementById('participationWeight').value) || 1;
-            currentUserData.userSettings.activityWeight = parseInt(document.getElementById('activityWeight').value) || 1;
-            
-            autoSave();
-            renderTrackingTable();
-            updateHallOfFame();
-            Swal.fire({
-                icon: 'success',
-                title: 'نجاح',
-                text: 'تم حفظ الأوزان بنجاح',
-                confirmButtonText: 'حسناً'
-            });
-        }
-
-        // أدوات البيانات
-        function exportToExcel() {
-            if (currentUserData.students.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'تحذير',
-                    text: 'لا توجد بيانات للتصدير',
-                    confirmButtonText: 'حسناً'
-                });
-                return;
-            }
-
-            const data = currentUserData.students.map(student => {
-                const group = currentUserData.groups.find(g => g.id === student.groupId);
-                const counters = currentUserData.counters[student.id] || { homework: { yes: 0, no: 0 }, participation: { yes: 0, no: 0 }, activity: { yes: 0, no: 0 } };
-                const points = calculateStudentPoints(student.id);
-                const totalYes = counters.homework.yes + counters.participation.yes + counters.activity.yes;
-                const totalNo = counters.homework.no + counters.participation.no + counters.activity.no;
-                const accuracy = totalYes + totalNo > 0 ? Math.round((totalYes / (totalYes + totalNo)) * 100) : 0;
-                
-                return {
-                    'اسم الطالب': student.name,
-                    'المجموعة': group?.name || 'بدون مجموعة',
-                    'الواجبات (✓)': counters.homework.yes,
-                    'الواجبات (✗)': counters.homework.no,
-                    'المشاركة (✓)': counters.participation.yes,
-                    'المشاركة (✗)': counters.participation.no,
-                    'النشاط (✓)': counters.activity.yes,
-                    'النشاط (✗)': counters.activity.no,
-                    'إجمالي (✓)': totalYes,
-                    'إجمالي (✗)': totalNo,
-                    'النقاط الإجمالية': points,
-                    'نسبة الدقة': accuracy + '%',
-                    'التقييم': getPerformanceLevel(student.id)
-                };
-            });
-
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'الطلاب');
-            XLSX.writeFile(wb, 'تقرير_الطلاب.xlsx');
-        }
-
-        function exportToPDF() {
-            if (currentUserData.students.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'تحذير',
-                    text: 'لا توجد بيانات للتصدير',
-                    confirmButtonText: 'حسناً'
-                });
-                return;
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFont('helvetica');
-            doc.setFontSize(16);
-            doc.text('تقرير أداء الطلاب', 105, 15, { align: 'center' });
-            
-            doc.setFontSize(10);
-            doc.text(`تاريخ التصدير: ${new Date().toLocaleDateString('ar-SA')}`, 105, 22, { align: 'center' });
-            
-            let y = 35;
-            doc.setFontSize(8);
-            
-            const studentsWithPoints = currentUserData.students.map(student => ({
-                ...student,
-                points: calculateStudentPoints(student.id),
-                group: currentUserData.groups.find(g => g.id === student.groupId)?.name || 'بدون مجموعة',
-                counters: currentUserData.counters[student.id] || { homework: { yes: 0, no: 0 }, participation: { yes: 0, no: 0 }, activity: { yes: 0, no: 0 } }
-            })).sort((a, b) => b.points - a.points);
-
-            studentsWithPoints.forEach((student, index) => {
-                if (y > 270) {
-                    doc.addPage();
-                    y = 20;
-                }
-                
-                const totalYes = student.counters.homework.yes + student.counters.participation.yes + student.counters.activity.yes;
-                const totalNo = student.counters.homework.no + student.counters.participation.no + student.counters.activity.no;
-                
-                doc.text(`${index + 1}. ${student.name} - ${student.group}`, 15, y);
-                doc.text(`النقاط: ${student.points} | ✓: ${totalYes} | ✗: ${totalNo}`, 15, y + 5);
-                y += 12;
-            });
-            
-            doc.save('تقرير_الطلاب.pdf');
-            Swal.fire({
-                icon: 'success',
-                title: 'نجاح',
-                text: 'تم تصدير الملف PDF بنجاح',
-                confirmButtonText: 'حسناً'
-            });
-        }
-
-        function importFromExcel() {
-            Swal.fire({
-                icon: 'info',
-                title: 'قيد التطوير',
-                text: 'خاصية الاستيراد من Excel قيد التطوير',
-                confirmButtonText: 'حسناً'
-            });
-        }
-
-        function backupData() {
-            const dataStr = JSON.stringify(appData, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `نسخة_احتياطية_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-            Swal.fire({
-                icon: 'success',
-                title: 'نجاح',
-                text: 'تم إنشاء نسخة احتياطية',
-                confirmButtonText: 'حسناً'
-            });
-        }
-
-        function resetData() {
-            Swal.fire({
-                title: 'مسح جميع البيانات',
-                text: 'هذا الإجراء لا يمكن التراجع عنه! أدخل كلمة "تأكيد" للمتابعة:',
-                input: 'text',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'مسح الكل',
-                cancelButtonText: 'إلغاء',
-                confirmButtonColor: '#d33',
-                inputValidator: (value) => {
-                    if (value !== 'تأكيد') {
-                        return 'يجب كتابة كلمة "تأكيد" للمتابعة!';
-                    }
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    currentUserData = {
-                        groups: [],
-                        students: [],
-                        counters: {},
-                        userSettings: {
-                            homeworkWeight: 1,
-                            participationWeight: 1,
-                            activityWeight: 1
-                        }
-                    };
-                    autoSave();
-                    renderGroups();
-                    renderTrackingTable();
-                    updateStatistics();
-                    updateHallOfFame();
-                    Swal.fire('تم المسح', 'تم مسح جميع البيانات', 'success');
-                }
-            });
-        }
-    </script>
-</body>
-</html>
